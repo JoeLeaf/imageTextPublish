@@ -1,0 +1,131 @@
+name: Build release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '已推送的版本标签，例如 v0.2.3'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: win
+            arch: x64
+          - os: macos-15-intel
+            platform: mac
+            arch: x64
+          - os: macos-15
+            platform: mac
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      EXPECTED_ARCH: ${{ matrix.arch }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run release:check
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build native package
+        run: npm run dist:${{ matrix.platform }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            release/ImageTextPublish-*.exe
+            release/ImageTextPublish-*.dmg
+          if-no-files-found: error
+          retention-days: 14
+
+  draft-release:
+    name: Prepare draft release
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          merge-multiple: true
+          path: release
+      - run: node scripts/check-release.mjs
+      - name: Check package set
+        run: |
+          node --input-type=module -e '
+            import { existsSync } from "node:fs";
+            import { readFile } from "node:fs/promises";
+            const { version } = JSON.parse(await readFile("package.json", "utf8"));
+            for (const suffix of ["win-x64.exe", "mac-x64.dmg", "mac-arm64.dmg"]) {
+              if (!existsSync(`release/ImageTextPublish-${version}-${suffix}`)) throw new Error(`Missing package: ${suffix}`);
+            }
+          '
+      - run: node scripts/release-checksums.mjs
+      - name: Create or update draft and attach packages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs/promises');
+            const {owner, repo} = context.repo;
+            const tag = process.env.RELEASE_TAG;
+            const releases = await github.paginate(github.rest.repos.listReleases, {owner, repo, per_page: 100});
+            let release = releases.find(item => item.tag_name === tag);
+            if (release && !release.draft) throw new Error('该版本已公开发布；请使用新的版本号，避免覆盖用户下载的包。');
+            if (!release) {
+              const notes = await github.rest.repos.generateReleaseNotes({owner, repo, tag_name: tag});
+              const body = [
+                'Windows：下载 win-x64.exe，双击启动，无需安装 Node.js。',
+                'Mac：Apple 芯片下载 mac-arm64.dmg，Intel 芯片下载 mac-x64.dmg。',
+                '当前安装包未签名/公证；macOS 尚需真实设备验收，抖音最终发帖请先用一条任务核对平台结果。',
+                '任务只在程序运行、电脑保持唤醒时执行。升级前请在应用中备份任务数据。',
+                '使用与发布说明：https://github.com/' + owner + '/' + repo + '#readme',
+                '', notes.data.body
+              ].join('\n\n');
+              release = (await github.rest.repos.createRelease({owner, repo, tag_name: tag, name: '图文发布助手 ' + tag, body, draft: true})).data;
+            }
+            const files = (await fs.readdir('release')).filter(name => /^ImageTextPublish-.*\.(exe|dmg)$/.test(name) || name === 'SHA256SUMS.txt');
+            const assets = await github.paginate(github.rest.repos.listReleaseAssets, {owner, repo, release_id: release.id, per_page: 100});
+            for (const name of files) {
+              const existing = assets.find(asset => asset.name === name);
+              if (existing) await github.rest.repos.deleteReleaseAsset({owner, repo, asset_id: existing.id});
+              const data = await fs.readFile('release/' + name);
+              await github.rest.repos.uploadReleaseAsset({owner, repo, release_id: release.id, name, data, headers: {'content-type': 'application/octet-stream', 'content-length': data.length}});
+            }
+            core.notice('发行草稿已就绪：' + release.html_url);
+            await core.summary.addHeading('发行草稿已就绪').addLink('检查并发布 Release', release.html_url).write();

@@ -1,8 +1,17 @@
 {
   "name": "image-text-publish",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "本地抖音图文任务管理器",
+  "author": "JoeLeaf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoeLeaf/imageTextPublish.git"
+  },
+  "homepage": "https://github.com/JoeLeaf/imageTextPublish#readme",
+  "bugs": {
+    "url": "https://github.com/JoeLeaf/imageTextPublish/issues"
+  },
   "main": "dist-electron/main/index.js",
   "type": "module",
   "scripts": {
@@ -12,8 +21,10 @@
     "test": "npm rebuild better-sqlite3 && vitest run",
     "start": "electron .",
     "pack": "npm run setup && npm run build && electron-builder --dir",
-    "dist:win": "npm run setup && npm run build && electron-builder --win portable",
-    "dist:mac": "npm run setup && npm run build && electron-builder --mac dmg",
+    "dist:win": "npm run setup && npm run build && electron-builder --win portable --x64 --publish never",
+    "dist:mac": "npm run setup && npm run build && electron-builder --mac dmg --publish never",
+    "release:check": "node scripts/check-release.mjs",
+    "release:checksums": "node scripts/release-checksums.mjs",
     "setup": "install-electron && electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
@@ -42,6 +53,7 @@
   "build": {
     "appId": "local.imageTextPublish",
     "productName": "图文发布助手",
+    "artifactName": "ImageTextPublish-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "release"
     },

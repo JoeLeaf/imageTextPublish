@@ -23,7 +23,7 @@ fi
 
 if [ ! -x node_modules/.bin/electron ]; then
   printf '首次准备依赖，请保持网络连接……\n'
-  npm install || fail
+  npm ci || fail
 fi
 
 printf '正在检查 Electron 运行时并匹配 SQLite 原生依赖……\n'
@@ -31,5 +31,5 @@ npm run setup || fail
 
 printf '正在构建桌面程序……\n'
 npm run build || fail
-printf '正在启动。当前发布通道尚未接通，不能实际自动发布。\n'
+printf '正在启动。任务需在界面中确认并点击“开始”才会发布。\n'
 npm start || fail

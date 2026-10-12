@@ -23,7 +23,7 @@ if errorlevel 1 (
 
 if not exist "node_modules\.bin\electron.cmd" (
   echo 首次准备依赖，请保持网络连接……
-  call npm install
+  call npm ci
   if errorlevel 1 goto failed
 )
 
@@ -34,7 +34,7 @@ if errorlevel 1 goto failed
 echo 正在构建桌面程序……
 call npm run build
 if errorlevel 1 goto failed
-echo 正在启动。当前发布通道尚未接通，不能实际自动发布。
+echo 正在启动。任务需在界面中确认并点击“开始”才会发布。
 call npm start
 if errorlevel 1 goto failed
 popd

@@ -4,8 +4,19 @@ dist-electron/
 release/
 coverage/
 .env
+.env.*
+!.env.example
 *.db
 *.db-shm
 *.db-wal
 .local-data/
 artifacts/
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+# Local account sessions, material files and exported backups do not belong in Git.
+local-data/
+materials/
+backups/
+*.local.json
