@@ -1,6 +1,6 @@
 import {afterAll,beforeAll,describe,expect,it,vi} from 'vitest';
 import {createHash} from 'node:crypto';
-import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {mkdtemp,realpath,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 vi.mock('electron',() => ({BrowserWindow:vi.fn(),session:{fromPartition:vi.fn()}}));
@@ -14,7 +14,8 @@ const config:TaskConfig = {name:'Test',accountId:account.id,textDirectory:'',ima
 let directory:string;
 let post:PreparedPost;
 beforeAll(async () => {
-  directory = await mkdtemp(join(tmpdir(),'platform-test-'));
+  // Material validation rejects path aliases; runner temp roots must be canonical.
+  directory = await mkdtemp(join(await realpath(tmpdir()),'platform-test-'));
   const bytes = Buffer.from('planned-image');
   const path = join(directory,'image.png');
   await writeFile(path,bytes);
