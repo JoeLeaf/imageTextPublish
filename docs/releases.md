@@ -6,9 +6,9 @@
 
 | 使用设备 | 包名示例 | 使用方式 |
 | --- | --- | --- |
-| Windows 64 位 | `ImageTextPublish-0.2.3-win-x64.exe` | 双击运行，无需安装 Node.js |
-| Mac，Apple 芯片 | `ImageTextPublish-0.2.3-mac-arm64.dmg` | 打开 DMG，把应用拖入 Applications |
-| Mac，Intel 芯片 | `ImageTextPublish-0.2.3-mac-x64.dmg` | 打开 DMG，把应用拖入 Applications |
+| Windows 64 位 | `ImageTextPublish-0.2.4-win-x64.exe` | 双击运行，无需安装 Node.js |
+| Mac，Apple 芯片 | `ImageTextPublish-0.2.4-mac-arm64.dmg` | 打开 DMG，把应用拖入 Applications |
+| Mac，Intel 芯片 | `ImageTextPublish-0.2.4-mac-x64.dmg` | 打开 DMG，把应用拖入 Applications |
 
 另附 `SHA256SUMS.txt`，用于核对下载文件是否完整。当前不提供 Windows ARM 原生包、自动更新、代码签名或 Apple 公证。Mac 包由对应架构的 GitHub Mac 运行器构建，构建成功不能替代真实设备验收。
 
@@ -27,7 +27,7 @@ npm test
 npm run release:check
 ```
 
-更新版本、创建标签并推送。例如从 `0.2.3` 发布下一版：
+更新版本、创建标签并推送。例如从 `0.2.4` 发布下一版：
 
 ```bash
 npm version patch -m "chore: release %s"
@@ -35,14 +35,14 @@ git push origin main
 git push origin --tags
 ```
 
-`npm version patch` 会同步两个 package 文件并创建版本提交与 `v0.2.4` 标签。只推送本次标签也可以用 `git push origin v0.2.4`。标签必须与 `package.json`、`package-lock.json` 的版本完全一致。
+`npm version patch` 会同步两个 package 文件并创建版本提交与 `v0.2.5` 标签。只推送本次标签也可以用 `git push origin v0.2.5`。标签必须与 `package.json`、`package-lock.json` 的版本完全一致。
 
-如果版本已手动更新并提交，首次发布当前 `0.2.3` 使用：
+如果版本已手动更新并提交，首次发布当前 `0.2.4` 使用：
 
 ```bash
-git tag v0.2.3
+git tag v0.2.4
 git push origin main
-git push origin v0.2.3
+git push origin v0.2.4
 ```
 
 随后在 Actions 查看 **Build release**：

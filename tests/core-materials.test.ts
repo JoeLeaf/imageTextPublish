@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { copyFile, mkdir, mkdtemp, rm, symlink, truncate, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, realpath, rm, symlink, truncate, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -9,7 +9,9 @@ import { prepareBatch, rebindPreparedPosts, relocateMaterialPath, scanDirectorie
 let directory: string;
 let config: TaskConfig;
 beforeEach(async () => {
-  directory = await mkdtemp(path.join(tmpdir(), 'publish-core-'));
+  // Hosted runners can expose temp paths through /var aliases or Windows 8.3 names.
+  // Use the canonical parent so material fixtures do not look like linked sources.
+  directory = await mkdtemp(path.join(await realpath(tmpdir()), 'publish-core-'));
   const textDirectory = path.join(directory, 'texts');
   const imageDirectory = path.join(directory, 'images');
   await mkdir(textDirectory);
