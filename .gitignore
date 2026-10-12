@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-electron/
+release/
+coverage/
+.env
+*.db
+*.db-shm
+*.db-wal
+.local-data/
+artifacts/

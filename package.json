@@ -1,0 +1,79 @@
+{
+  "name": "image-text-publish",
+  "version": "0.2.2",
+  "private": true,
+  "description": "本地抖音图文任务管理器",
+  "main": "dist-electron/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run setup && electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "npm rebuild better-sqlite3 && vitest run",
+    "start": "electron .",
+    "pack": "npm run setup && npm run build && electron-builder --dir",
+    "dist:win": "npm run setup && npm run build && electron-builder --win portable",
+    "dist:mac": "npm run setup && npm run build && electron-builder --mac dmg",
+    "setup": "install-electron && electron-rebuild -f -w better-sqlite3"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.0.0",
+    "antd": "^5.27.0",
+    "better-sqlite3": "^12.4.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^4.0.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9",
+    "vitest": "^4.1.11"
+  },
+  "build": {
+    "appId": "local.imageTextPublish",
+    "productName": "图文发布助手",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*",
+      "assets/brand/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*",
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "assets/brand/app-icon.ico",
+      "signExecutable": false
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "assets/brand/app-icon.icns"
+    },
+    "electronDist": "node_modules/electron/dist"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "license": "UNLICENSED"
+}
