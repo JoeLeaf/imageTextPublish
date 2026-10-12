@@ -6,9 +6,9 @@
 
 | 使用设备 | 包名示例 | 使用方式 |
 | --- | --- | --- |
-| Windows 64 位 | `ImageTextPublish-0.2.4-win-x64.exe` | 双击运行，无需安装 Node.js |
-| Mac，Apple 芯片 | `ImageTextPublish-0.2.4-mac-arm64.dmg` | 打开 DMG，把应用拖入 Applications |
-| Mac，Intel 芯片 | `ImageTextPublish-0.2.4-mac-x64.dmg` | 打开 DMG，把应用拖入 Applications |
+| Windows 64 位 | `ImageTextPublish-0.2.5-win-x64.exe` | 双击运行，无需安装 Node.js |
+| Mac，Apple 芯片 | `ImageTextPublish-0.2.5-mac-arm64.dmg` | 打开 DMG，把应用拖入 Applications |
+| Mac，Intel 芯片 | `ImageTextPublish-0.2.5-mac-x64.dmg` | 打开 DMG，把应用拖入 Applications |
 
 另附 `SHA256SUMS.txt`，用于核对下载文件是否完整。当前不提供 Windows ARM 原生包、自动更新、代码签名或 Apple 公证。Mac 包由对应架构的 GitHub Mac 运行器构建，构建成功不能替代真实设备验收。
 
@@ -27,7 +27,7 @@ npm test
 npm run release:check
 ```
 
-更新版本、创建标签并推送。例如从 `0.2.4` 发布下一版：
+更新版本、创建标签并推送。例如从 `0.2.5` 发布下一版：
 
 ```bash
 npm version patch -m "chore: release %s"
@@ -35,14 +35,14 @@ git push origin main
 git push origin --tags
 ```
 
-`npm version patch` 会同步两个 package 文件并创建版本提交与 `v0.2.5` 标签。只推送本次标签也可以用 `git push origin v0.2.5`。标签必须与 `package.json`、`package-lock.json` 的版本完全一致。
+`npm version patch` 会同步两个 package 文件并创建版本提交与 `v0.2.6` 标签。只推送本次标签也可以用 `git push origin v0.2.6`。标签必须与 `package.json`、`package-lock.json` 的版本完全一致。
 
-如果版本已手动更新并提交，首次发布当前 `0.2.4` 使用：
+如果版本已手动更新并提交，首次发布当前 `0.2.5` 使用：
 
 ```bash
-git tag v0.2.4
+git tag v0.2.5
 git push origin main
-git push origin v0.2.4
+git push origin v0.2.5
 ```
 
 随后在 Actions 查看 **Build release**：
@@ -80,6 +80,14 @@ npm run dist:mac
 Mac 命令默认生成当前电脑架构的包。另一架构由对应 GitHub 运行器构建，不直接复制另一系统或架构的 `node_modules`。SQLite 和 Sharp 都有原生组件，必须匹配运行系统、架构与 Electron ABI。
 
 输出在 `release/`。命令自动准备 Electron、恢复 SQLite 的 Electron ABI、构建界面，再生成包；`--publish never` 保证本机打包不会自动上传。只需要解压目录形式的应用时，可运行 `npm run pack`，分发时要保留整个目录。
+
+Windows 首次打包还会下载 NSIS 等工具。如果 GitHub 下载超时，可仅在当前 PowerShell 临时使用镜像后重试；工具的原始校验值仍由 electron-builder 验证：
+
+```powershell
+$env:ELECTRON_BUILDER_BINARIES_MIRROR = 'https://npmmirror.com/mirrors/electron-builder-binaries/'
+npm run dist:win
+Remove-Item Env:ELECTRON_BUILDER_BINARIES_MIRROR
+```
 
 本地安装包生成校验文件：
 
